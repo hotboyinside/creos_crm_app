@@ -1,9 +1,14 @@
 import './Home.css'
 
+import Header from '../../components/Header/Header'
+
 function Home() {
   return (
     <>
-     <h1>Home page</h1>
+      <Header />
+      <main className='main'>
+
+      </main>
     </>
   )
 }
