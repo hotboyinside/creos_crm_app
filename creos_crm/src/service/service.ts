@@ -1,61 +1,71 @@
-import { pokemonStore, paginationData } from "@/store/store";
-import { PokemonFetch } from "@/transport/transport";
-import { PokemonData } from "@/model/model";
+import { Transport } from "../transport/transport";
+import { IComment, IIssue, IDesignerKPI } from "../models/models";
 
-const pokemonTransport = PokemonFetch.getInstance();
+const trans = Transport.getInstance();
 
-interface pokemonServiceInterface {
-    getDataFromApi(): Promise<PokemonData[]>
-    clickedBtn(event: Event): Promise<void>
+interface IService {
+    getLastComments(): Promise<IComment[]>
+    getDesignersByTime(): Promise<IDesignerKPI[]>
 }
 
-export class PokemonService implements pokemonServiceInterface {
-    private static instance: PokemonService;
+export class Service implements IService {
+    private static instance: Service;
 
     constructor() {};
 
-    public static getInstance(): PokemonService {
-        if (!PokemonService.instance) {
-            PokemonService.instance = new PokemonService();
+    public static getInstance(): Service {
+        if (!Service.instance) {
+            Service.instance = new Service();
         }
 
-        return PokemonService.instance;
+        return Service.instance;
     }
 
-    public async getDataFromApi(): Promise<PokemonData[]> {
-        if (paginationData.currentPokemons >= paginationData.countPokemons) {
-            return []
+    public async getLastComments(): Promise<IComment[]> {
+        const response: Promise<IComment[]> = trans.getData();
+        return (await response).slice(0, 10)
+    }
+
+    public async getDesignersByTime(): Promise<IDesignerKPI[]> {
+        // функция проверки дизайнера в списке
+        const checkDesignerExist = (designersInformation: IDesignerKPI[], designerName: string): number => {
+            return designersInformation.findIndex(designerData => designerData.designer === designerName);
         }
-        const data = await pokemonTransport.getDataAboutPokemons(paginationData.currentPokemons, 20);
-        paginationData.countPokemons = data.count;
-        pokemonStore.push(...data.results);
-        
-        let pokemonId: number = 1
-        const detailPromises = pokemonStore.map(async (item) => {
-            item.id = pokemonId++;
-            item.catched = false;
-            const pokemonDetails = await pokemonTransport.getDetailsPokemon(item.name);
-            item.avatar = pokemonDetails['sprites']['front_shiny'];
-        });
-        
-        await Promise.all(detailPromises);
 
-        return pokemonStore
-    }
+        // функция, сравнивающая 2 числа
+        const compareNumbers = (a: number, b: number): number => a - b;
 
-    public async clickedBtn(event: Event) {
-        // при нажатии на кнопку карточки, меняю флаг catched на true
-        const button = event.target as HTMLElement;
-        const curr_id = Number(button.getAttribute('data-id'));
-        const updatedPokemons = pokemonStore.map((value) => {
-            if (value.id === curr_id) {
-                value.catched = true;
+        // получаем информацию  о всех выподненных задачах
+        const response2: Promise<IIssue[]> = trans.getData('issue/');
+        const issues = await response2.then(data => {return data.filter((value) => {return value.status === 'Done'})});
+
+        // считаем количество выполненных задач и время(в часах), затраченное на каждую задачу
+        let designersKPI: IDesignerKPI[] = [];
+        issues.forEach((issueInfo) => {
+            const existAnswer = checkDesignerExist(designersKPI, issueInfo.designer);
+            const workTime = (new Date(issueInfo.date_finished_by_designer).getTime() - new Date(issueInfo.date_started_by_designer).getTime()) / 1000 / 60 / 60;
+        
+            if (existAnswer === -1) {
+                designersKPI.push({
+                    designer: issueInfo.designer,
+                    workTime: [workTime],
+                    countWorks: 1
+                })
+            } else {
+                designersKPI[existAnswer].workTime.push(workTime);
+                designersKPI[existAnswer].countWorks += 1;
             }
-            return value
         });
-        pokemonStore.length = 0;
-        pokemonStore.push(...updatedPokemons);
-        button.setAttribute('disabled', 'disabled')
-        button.innerText = 'Пойман!'
+        designersKPI.forEach(designerData => {
+            designerData.workTime.sort(compareNumbers)
+            const middle = designerData.workTime.length / 2;
+            if (designerData.workTime.length % 2 === 0) {
+                designerData.me = designerData.workTime[middle] + designerData.workTime[middle - 1] / 2;
+            } else {
+                designerData.me = designerData.workTime[Math.floor(middle)];
+            }
+        })
+
+        return designersKPI
     }
 }

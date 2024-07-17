@@ -19,6 +19,7 @@ export interface IIssue {
 
 export interface IDesignerKPI {
     designer: string,
-    workTime: number,
-    countWorks: number
+    workTime: number[],
+    countWorks: number,
+    me ?: number
 }
