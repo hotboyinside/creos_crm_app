@@ -21,5 +21,5 @@ export interface IDesignerKPI {
     designer: string,
     workTime: number[],
     countWorks: number,
-    me ?: number
+    me: number
 }
