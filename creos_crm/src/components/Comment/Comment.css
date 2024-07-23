@@ -1,0 +1,42 @@
+.comment {
+    border: 1px solid #657786;
+    border-radius: 45px;
+    padding: 30px;
+}
+
+.comment__upper {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.comment__avatar {
+    border-radius: 100%;
+    width: 60px;
+    height: 60px;
+}
+
+.comment__author {
+    margin: 0;
+    font-weight: 600;
+    font-size: 16px;
+    color: #14171a;
+}
+
+.comment__task {
+    margin: 0;
+    font-weight: 400;
+    font-size: 14px;
+    color: #657786;
+}
+
+.comment__text {
+    margin: 0;
+    margin-bottom: 15px;
+}
+
+.comment__time-created {
+    font-weight: 400;
+    font-size: 14px;
+    color: #657786;
+}

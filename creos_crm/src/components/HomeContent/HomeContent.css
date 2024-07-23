@@ -1,5 +1,18 @@
 .home__content {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+}
+
+.home__comments {
+    flex-basis: 48%;
+}
+
+.comments__items {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.home__designers {
+    flex-basis: 48%;
 }

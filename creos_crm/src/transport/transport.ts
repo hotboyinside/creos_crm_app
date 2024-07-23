@@ -25,8 +25,8 @@ export class Transport implements ITransport {
     }
 
     public async getData<T>(route?: string): Promise<T> {
-        const currRoute: string = route ? route : this.route; 
-        const response = await fetch(`${this.protocol + this.hostName + this.versionPath + currRoute}`);
+        const currRoute: string = route ? route : this.protocol + this.hostName + this.versionPath + this.route; 
+        const response = await fetch(`${currRoute}`);
         if (!response.ok) {
             throw new Error(`Error! status: ${response.status}`);
         }
