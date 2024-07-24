@@ -49,7 +49,6 @@ export class Service implements IService {
                     });
                 }
             });
-            console.log(designersWithCompletedTasks)
             url = response.next
         } while (url)
 
@@ -58,7 +57,7 @@ export class Service implements IService {
         // while (designersInformation.next != null)
         
         // const designersInformation = (await response2).results
-        // designersInformation.forEach(designerInfo => {
+        // designersInformation.forEach(designerInfo => {j 
         //     designerInfo.issues = designerInfo.issues.filter((issue) => issue.status === 'Done');
         //     designerInfo.issues.length > 0 ? designersWithCompletedTasks.push(designerInfo) : '';
         // })
@@ -66,41 +65,38 @@ export class Service implements IService {
         // const issues = await response2.then(data => { return data.filter((value) => { return value.status === 'Done' }) });
 
         // считаем количество выполненных задач и время(в часах), затраченное на каждую задачу
-        // let designersKPI: IDesignerKPI[] = [];
-        // issues.forEach((issueInfo) => {
-        //     const existAnswer = checkDesignerExist(designersKPI, issueInfo.designer);
-        //     const workTime = (new Date(issueInfo.date_finished_by_designer).getTime() - new Date(issueInfo.date_started_by_designer).getTime()) / 1000 / 60 / 60;
+        let designersKPI: IDesignerKPI[] = [];
+        designersWithCompletedTasks.forEach(designerInfo => {
+            let designersWorkTime: number[] = [];
+            designersWorkTime = designerInfo.issues.map(issueInfo => {
+                return (new Date(issueInfo.date_finished_by_designer).getTime() - new Date(issueInfo.date_started_by_designer).getTime()) / 1000 / 60 / 60;
+            })
+            designersKPI.push({
+                avatar: designerInfo.avatar,
+                designer: designerInfo.username,
+                workTime: designersWorkTime,
+                countWorks: designersWorkTime.length,
+                me: designersWorkTime[0]
+            })
+        });
+        // сортируем время затраченное на каждую задачу и находим медианное время
+        designersKPI.forEach(designerData => {
+            designerData.workTime.sort(compareNumbers)
+            const middle = designerData.workTime.length / 2;
+            if (designerData.workTime.length % 2 === 0) {
+                designerData.me = (designerData.workTime[middle] + designerData.workTime[middle - 1]) / 2;
+            } else {
+                designerData.me = designerData.workTime[Math.floor(middle)];
+            }
+        })
 
-        //     if (existAnswer === -1) {
-        //         designersKPI.push({
-        //             designer: issueInfo.designer,
-        //             workTime: [workTime],
-        //             countWorks: 1,
-        //             me: workTime
-        //         })
-        //     } else {
-        //         designersKPI[existAnswer].workTime.push(workTime);
-        //         designersKPI[existAnswer].countWorks += 1;
-        //     }
-        // });
-        // // сортируем время затраченное на каждую задачу и находим медианное время
-        // designersKPI.forEach(designerData => {
-        //     designerData.workTime.sort(compareNumbers)
-        //     const middle = designerData.workTime.length / 2;
-        //     if (designerData.workTime.length % 2 === 0) {
-        //         designerData.me = (designerData.workTime[middle] + designerData.workTime[middle - 1]) / 2;
-        //     } else {
-        //         designerData.me = designerData.workTime[Math.floor(middle)];
-        //     }
-        // })
-
-        // if (byTime) {
-        //     // сортируем по медианному времени
-        //     designersKPI.sort((designerData1, designerData2) => designerData1.me - designerData2.me)
-        // } else {
-        //     // сортируем по количеству выполненных задач
-        //     designersKPI.sort((designerData1, designerData2) => designerData1.countWorks - designerData2.countWorks).reverse()
-        // }
-        // return designersKPI.slice(0, 10)
+        if (byTime) {
+            // сортируем по медианному времени
+            designersKPI.sort((designerData1, designerData2) => designerData1.me - designerData2.me)
+        } else {
+            // сортируем по количеству выполненных задач
+            designersKPI.sort((designerData1, designerData2) => designerData1.countWorks - designerData2.countWorks).reverse()
+        }
+        return designersKPI.slice(0, 10)
     }
 }

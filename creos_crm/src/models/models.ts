@@ -41,7 +41,7 @@ export interface IResponseWithCommonData {
 }
 
 export interface IDesignerKPI {
-    avatar?: string,
+    avatar: string,
     designer: string,
     workTime: number[],
     countWorks: number,

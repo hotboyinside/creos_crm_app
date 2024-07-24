@@ -11,6 +11,7 @@ function Home() {
 
   const comments = service.getLastComments();
   const topDesigners = service.getDesigners(false);
+  console.log(topDesigners.then(data => console.log(data)))
 
 
   
