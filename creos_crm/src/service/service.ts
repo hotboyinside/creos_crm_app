@@ -1,5 +1,8 @@
 import { Transport } from "../transport/transport";
-import { IComment, IIssue, IDesignerKPI, IResponseWithCommonData, IDesignerFromApi } from "../models/models";
+import {
+    IComment, IDesignerKPI, IResponseWithCommonData, IDesignerFromApi, IIssueWithOptional,
+    Statistic, WeekNumber
+} from "../models/models";
 
 const trans = Transport.getInstance();
 
@@ -87,18 +90,8 @@ export class Service implements IService {
         return designersKPI.slice(0, 10)
     }
 
-    public async getStatisticsOfProjects(countWorkWeeks: number = 8): Promise<any> {
-        const findWorkWeekOfDay = (dateInMiliseconds: number): number => {
-            for (let i=0; i < countWorkWeeks; i++) {
-                const currStartOfWeekInMiliseconds = startDayOfWeekInMiliseconds - (i * weekInMiliseconds);
-                if (inputDate > currStartOfWeekInMiliseconds) {
-                    console.log('Рабочая неделя: ' + (i + 1))
-                    break
-                }
-            }
-            return -1
-        }
-
+    public async getStatisticsOfProjects(countWorkWeeks: number = 8): Promise<Map<WeekNumber, Statistic>> {
+        const weekInMiliseconds = 7 * 1000 * 60 * 60 * 24;
         const weekdaysDaysBeforeStart: { [key: number]: number } = {
             0: 6,
             1: 0,
@@ -108,15 +101,49 @@ export class Service implements IService {
             5: 4,
             6: 5
         }
-        const weekInMiliseconds = 7 * 1000 * 60 * 60 * 24;
 
+        const filterByWorkWeeks = (dateInMiliseconds: number): number | false=> {
+            for (let workWeekNumber=0; workWeekNumber < countWorkWeeks; workWeekNumber++) {
+                const currStartOfWeekInMiliseconds = startDayOfWeekInMiliseconds - (workWeekNumber * weekInMiliseconds);
+                if (dateInMiliseconds > currStartOfWeekInMiliseconds) {
+                    return workWeekNumber + 1;
+                }
+            }
+            return false;
+        }
+
+        const url = 'https://sandbox.creos.me/api/v1/issue/';
+        const responseData: IIssueWithOptional[] = await trans.getData(url);
+        const onlyCopmpletedIssues = responseData.filter(responseData => responseData.status == "Done");
+        
         const currDate = new Date();
         const currDayOfWeek = currDate.getDay();
         const currDateWithoutTime = new Date(currDate.getFullYear(), currDate.getMonth(), currDate.getDate());
-        const remainDaysOfEndWeek = weekdaysDaysBeforeStart[currDayOfWeek];
-        const passedDaysFromStart = remainDaysOfEndWeek * 1000 * 60 * 60 * 24;
-        const startDayOfWeekInMiliseconds = currDateWithoutTime.getTime() - passedDaysFromStart;
-        const inputDate = new Date("2024-06-21T11:00:18Z").getTime();
-        findWorkWeekOfDay(inputDate);
+        const startDayOfWeekInMiliseconds = currDateWithoutTime.getTime() - (weekdaysDaysBeforeStart[currDayOfWeek] * 1000 * 60 * 60 * 24);        
+
+        const statisticAboutIssues = new Map<WeekNumber, Statistic>();
+        for (let workWeekNumber = 1; workWeekNumber <= countWorkWeeks; workWeekNumber++) {
+            statisticAboutIssues.set(workWeekNumber, {income: 0, expense: 0, differense: 0});
+        }
+
+        onlyCopmpletedIssues.forEach(issue => {
+            const timeInMiliSeconds = new Date(issue.date_finished).getTime();
+            const response = filterByWorkWeeks(timeInMiliSeconds)
+            if (response) {
+                const currentStatistic = statisticAboutIssues.get(response)!;
+                const updatedIncome = currentStatistic.income + issue.received_from_client;
+                const updatedExpense = currentStatistic.expense + issue.send_to_designer + issue.send_to_project_manager;
+                const updatedDifference = currentStatistic.differense + issue.received_from_client - issue.send_to_designer - issue.send_to_project_manager;
+
+                statisticAboutIssues.set(response, {
+                    income: updatedIncome,
+                    expense: updatedExpense,
+                    differense: updatedDifference
+                })
+            }
+        })
+
+        return statisticAboutIssues
     }
+
 }

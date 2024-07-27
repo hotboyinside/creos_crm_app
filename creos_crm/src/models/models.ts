@@ -6,17 +6,6 @@
     message: string
 }
 
-// export interface IIssue {
-//     id: number,
-//     status: string,
-//     designer: string,
-//     project: string,
-//     date_created: string,
-//     date_started_by_designer: string,
-//     date_finished_by_designer: string,
-//     [key: string]: any
-// }
-
 export interface IIssue {
     key: string,
     date_started_by_designer: string,
@@ -47,3 +36,27 @@ export interface IDesignerKPI {
     countWorks: number,
     me: number
 }
+
+export interface IIssueWithOptional {
+    id: number
+    status: string
+    designer: string
+    project: string
+    received_from_client: number
+    send_to_project_manager: number
+    send_to_designer: number
+    summary: string
+    date_updated: string
+    date_started_by_designer: string
+    date_finished_by_designer: string
+    date_finished: string
+}
+
+export type Statistic = {
+    income: number,
+    expense: number,
+    differense: number
+}
+
+export type WeekNumber = number
+

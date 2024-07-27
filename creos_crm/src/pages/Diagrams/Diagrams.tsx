@@ -1,92 +1,96 @@
 import './Diagrams.css'
 
 import { Service } from '../../service/service';
+import { Statistic, WeekNumber } from '../../models/models.ts';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-import { Pie } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 import Chart from "chart.js/auto";
 import { CategoryScale } from "chart.js";
 
 import Header from '../../components/Header/Header';
-import { Data } from '../../data.ts'
 
 function Diagrams() {
-    const now = new Date();
-    const currDateWithoutTime = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const weekdays: {
-        [key: number]: number
-    } = {
-        0: 6,
-        1: 0,
-        2: 1,
-        3: 2,
-        4: 3,
-        5: 4,
-        6: 5
-    }
-    const currDay = now.getDay();
-    const remainDaysOfEndWeek = weekdays[currDay];
-    const passedDaysFromStart = remainDaysOfEndWeek * 1000 * 60 * 60 * 24;
-    const startDayOfWeekInMiliseconds = currDateWithoutTime.getTime() - passedDaysFromStart;
-    const weekInMiliseconds = 7 * 1000 * 60 * 60 * 24;
-    const currDate = new Date("2024-06-21T11:00:18Z").getTime();
-    const countWorkWeeksFromUser = 8;
-    for (let i=0; i < countWorkWeeksFromUser; i++) {
-        const currStartOfWeekInMiliseconds = startDayOfWeekInMiliseconds - (i * weekInMiliseconds);
-        if (currDate > currStartOfWeekInMiliseconds) {
-            console.log('Рабочая неделя: ' + (i + 1))
-            break
-        }
-    }
-
-    console.log(startDayOfWeekInMiliseconds)
-    console.log(new Date(currDateWithoutTime.getTime() - passedDaysFromStart).toLocaleString());
-    
     const service = Service.getInstance();
-    
-    // console.log('День недели:' + now.getDay())
-    // console.log('Часы:' + now.getHours())
-    // console.log('Минуты:' + now.getMinutes())
-    // console.log('Секунды:' + now.getSeconds())
 
-    Chart.register(CategoryScale);
+    const [statistics, setStatistics] = useState<Map<WeekNumber, Statistic> | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const [chartData, setChartData] = useState({
-        labels: Data.map((data) => data.year),
+    useEffect(() => {
+        const fetchStatistics = async () => {
+            try {
+                const stats = await service.getStatisticsOfProjects();
+                setStatistics(stats);
+            } catch (err) {
+                setError('Невозможно подключиться к серверу');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchStatistics();
+    }, []);
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>{error}</div>;
+    }
+
+    const chartData = {
+        labels: statistics ? Array.from(statistics.keys()).map(week => `Week ${week}`) : [],
         datasets: [
             {
-                label: "Users Gained ",
-                data: Data.map((data) => data.userGain),
-                backgroundColor: [
-                    "rgba(75,192,192,1)",
-                    "&quot;#ecf0f1",
-                    "#50AF95",
-                    "#f3ba2f",
-                    "#2a71d0"
-                ],
-                borderColor: "black",
-                borderWidth: 2
+                label: 'Income',
+                data: statistics ? Array.from(statistics.values()).map(stat => stat.income) : [],
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+            },
+            {
+                label: 'Expense',
+                data: statistics ? Array.from(statistics.values()).map(stat => stat.expense) : [],
+                backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1,
+            },
+            {
+                label: 'Difference',
+                data: statistics ? Array.from(statistics.values()).map(stat => stat.differense) : [],
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
             }
         ]
-    })
-    console.log(chartData)
+    };
+
+    Chart.register(CategoryScale);
 
     return (
         <>
             <Header />
-            <div className="chart-container">
-                <h2 style={{ textAlign: "center" }}>Pie Chart</h2>
-                <Pie
-                    data={chartData}
-                    options={{
+            <div className="container">
+                <div className="chart-container">
+                    <h2 style={{ textAlign: "center" }}>Bar Chart</h2>
+                    <Bar
+                        data={chartData}
+                        options={{
                         plugins: {
                             title: {
-                                display: true,
-                                text: "Users Gained between 2016-2020"
+                            display: true,
+                            text: "Users Gained between 2016-2020"
+                            },
+                            legend: {
+                            display: false
                             }
                         }
-                    }} />
+                    }}
+                />
+            </div>
             </div>
         </>
     )
