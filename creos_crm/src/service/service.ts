@@ -1,7 +1,7 @@
 import { Transport } from "../transport/transport";
 import {
     IComment, IDesignerKPI, IResponseWithCommonData, IDesignerFromApi, IIssueWithOptional,
-    Statistic, WeekNumber
+    Statistic, WeekNumber, IssueStatusStatistic
 } from "../models/models";
 
 const trans = Transport.getInstance();
@@ -31,11 +31,6 @@ export class Service implements IService {
 
     // Promise<IDesignerKPI>
     public async getDesigners(byTime: boolean = true): Promise<IDesignerKPI[]> {
-        // функция проверки дизайнера в списке
-        // const checkDesignerExist = (designersInformation: IDesignerKPI[], designerName: string): number => {
-        //     return designersInformation.findIndex(designerData => designerData.designer === designerName);
-        // }
-
         // функция, сравнивающая 2 числа
         const compareNumbers = (a: number, b: number): number => a - b;
 
@@ -90,7 +85,7 @@ export class Service implements IService {
         return designersKPI.slice(0, 10)
     }
 
-    public async getStatisticsOfProjects(countWorkWeeks: number = 8): Promise<Map<WeekNumber, Statistic>> {
+    public async getEconomicStatistic(countWorkWeeks: number = 8): Promise<Map<WeekNumber, Statistic>> {
         const weekInMiliseconds = 7 * 1000 * 60 * 60 * 24;
         const weekdaysDaysBeforeStart: { [key: number]: number } = {
             0: 6,
@@ -102,7 +97,7 @@ export class Service implements IService {
             6: 5
         }
 
-        const filterByWorkWeeks = (dateInMiliseconds: number): number | false=> {
+        const filterByWorkWeeks = (dateInMiliseconds: number): number | false => {
             for (let workWeekNumber=0; workWeekNumber < countWorkWeeks; workWeekNumber++) {
                 const currStartOfWeekInMiliseconds = startDayOfWeekInMiliseconds - (workWeekNumber * weekInMiliseconds);
                 if (dateInMiliseconds > currStartOfWeekInMiliseconds) {
@@ -146,4 +141,17 @@ export class Service implements IService {
         return statisticAboutIssues
     }
 
+    public async getIssuesStatus() {
+        const url = 'https://sandbox.creos.me/api/v1/issue/';
+        const responseData: IIssueWithOptional[] = await trans.getData(url);
+        const statusStatistic: IssueStatusStatistic = {};
+        const completedIssues = responseData.filter(responseData => responseData.status == "Done");
+        const inProgressIssues = responseData.filter(responseData => responseData.status == "In Progress");
+        const newIssues = responseData.filter(responseData => responseData.status == "New");
+        
+        statusStatistic["Done"] = completedIssues.length;
+        statusStatistic["In Progress"] = inProgressIssues.length;
+        statusStatistic["New"] = newIssues.length;
+        return statusStatistic
+    }
 }

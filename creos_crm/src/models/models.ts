@@ -60,3 +60,7 @@ export type Statistic = {
 
 export type WeekNumber = number
 
+export interface IssueStatusStatistic {
+    [key: string]: number
+}
+

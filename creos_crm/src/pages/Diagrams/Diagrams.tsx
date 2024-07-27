@@ -14,6 +14,8 @@ import Header from '../../components/Header/Header';
 function Diagrams() {
     const service = Service.getInstance();
 
+    console.log(service.getIssuesStatus())
+
     const [statistics, setStatistics] = useState<Map<WeekNumber, Statistic> | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -21,7 +23,7 @@ function Diagrams() {
     useEffect(() => {
         const fetchStatistics = async () => {
             try {
-                const stats = await service.getStatisticsOfProjects();
+                const stats = await service.getEconomicStatistic();
                 setStatistics(stats);
             } catch (err) {
                 setError('Невозможно подключиться к серверу');
@@ -79,18 +81,18 @@ function Diagrams() {
                     <Bar
                         data={chartData}
                         options={{
-                        plugins: {
-                            title: {
-                            display: true,
-                            text: "Users Gained between 2016-2020"
-                            },
-                            legend: {
-                            display: false
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: "Users Gained between 2016-2020"
+                                },
+                                legend: {
+                                    display: false
+                                }
                             }
-                        }
-                    }}
-                />
-            </div>
+                        }}
+                    />
+                </div>
             </div>
         </>
     )
