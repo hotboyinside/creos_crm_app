@@ -58,9 +58,19 @@ export type Statistic = {
     differense: number
 }
 
+export interface IChartData {
+    labels: string[];
+    datasets: {
+        label: string;
+        data: number[];
+        backgroundColor: string[];
+        borderColor: string;
+        borderWidth: number;
+    }[];
+}
+
 export type WeekNumber = number
 
 export interface IssueStatusStatistic {
     [key: string]: number
 }
-

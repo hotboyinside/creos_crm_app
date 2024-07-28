@@ -1,11 +1,12 @@
 import './Diagrams.css'
 
 import { Service } from '../../service/service';
-import { Statistic, WeekNumber, IssueStatusStatistic } from '../../models/models.ts';
+import PieChart from '../../components/PieChart/PieChart.tsx';
+import BarChart from '../../components/BarChart/BarChart.tsx';
+import { Statistic, WeekNumber, IssueStatusStatistic, IChartData } from '../../models/models.ts';
 
 import { useState, useEffect } from "react";
 
-import { Bar, Pie } from "react-chartjs-2";
 import Chart from "chart.js/auto";
 import { CategoryScale } from "chart.js";
 
@@ -60,38 +61,38 @@ function Diagrams() {
         return <div>{errorStatistic}</div>;
     }
 
-    const chartData = {
+    const statisticsDataForChart: IChartData = {
         labels: statistics ? Array.from(statistics.keys()).map(week => `Week ${week}`) : [],
         datasets: [
             {
-                label: 'Income',
+                label: 'Прибыль',
                 data: statistics ? Array.from(statistics.values()).map(stat => stat.income) : [],
-                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                backgroundColor: ['rgba(75, 192, 192, 0.6)'],
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 1,
             },
             {
-                label: 'Expense',
+                label: 'Расходы',
                 data: statistics ? Array.from(statistics.values()).map(stat => stat.expense) : [],
-                backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                backgroundColor: ['rgba(255, 99, 132, 0.6)'],
                 borderColor: 'rgba(255, 99, 132, 1)',
                 borderWidth: 1,
             },
             {
-                label: 'Difference',
+                label: 'Разница',
                 data: statistics ? Array.from(statistics.values()).map(stat => stat.differense) : [],
-                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                backgroundColor: ['rgba(54, 162, 235, 0.6)'],
                 borderColor: 'rgba(54, 162, 235, 1)',
                 borderWidth: 1,
             }
         ]
     };
 
-    const chartData2 = {
+    const issuesStatusDataForChart: IChartData = {
         labels: statusIssues ? Object.keys(statusIssues) : [],
         datasets: [
             {
-                label: 'Done',
+                label: 'Количество',
                 data: statusIssues ? [statusIssues["Done"], statusIssues["In Progress"], statusIssues["New"]] : [],
                 backgroundColor: [
                     'rgba(75, 192, 192, 0.6)',
@@ -111,36 +112,8 @@ function Diagrams() {
             <Header />
             <div className="container">
                 <div className="chart-container">
-                    <h2 style={{ textAlign: "center" }}>Bar Chart</h2>
-                    <Bar
-                        data={chartData}
-                        options={{
-                            plugins: {
-                                title: {
-                                    display: true,
-                                    text: "Users Gained between 2016-2020"
-                                },
-                                legend: {
-                                    display: false
-                                }
-                            }
-                        }}
-                    />
-                    <h2 style={{ textAlign: "center" }}>Bar Chart</h2>
-                    <Pie
-                        data={chartData2}
-                        options={{
-                            plugins: {
-                                title: {
-                                    display: true,
-                                    text: "Users Gained between 2016-2020"
-                                },
-                                legend: {
-                                    display: false
-                                }
-                            }
-                        }}
-                    />
+                    <BarChart statisticsData = {statisticsDataForChart}/>
+                    <PieChart issuesStatusData={issuesStatusDataForChart} />
                 </div>
             </div>
         </>
