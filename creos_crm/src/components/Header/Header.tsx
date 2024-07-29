@@ -13,7 +13,7 @@ function Header() {
                     <ul className='nav__list list-reset'>
                         <li><Link to='/' className='nav__link'>Главная</Link></li>
                         <li><Link to='/diagrams' className='nav__link'>Диаграммы</Link></li>
-                        <li><Link to='#' className='nav__link'>Дизайнеры</Link></li>
+                        <li><Link to='/designers' className='nav__link'>Дизайнеры</Link></li>
                     </ul>
                 </nav>
             </div>

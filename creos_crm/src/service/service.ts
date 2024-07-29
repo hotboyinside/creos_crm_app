@@ -8,7 +8,10 @@ const trans = Transport.getInstance();
 
 interface IService {
     getLastComments(): Promise<IComment[]>
-    getDesigners(byTime: boolean): Promise<IDesignerKPI[]>
+    getDesignersKPI(byTime: boolean): Promise<IDesignerKPI[]>
+    getEconomicStatistic(countWorkWeeks: number): Promise<Map<WeekNumber, Statistic>>
+    getIssuesStatus(): Promise<IssueStatusStatistic>
+    getDesigners(): Promise<IDesignerFromApi[]>
 }
 
 export class Service implements IService {
@@ -30,7 +33,7 @@ export class Service implements IService {
     }
 
     // Promise<IDesignerKPI>
-    public async getDesigners(byTime: boolean = true): Promise<IDesignerKPI[]> {
+    public async getDesignersKPI(byTime: boolean = true): Promise<IDesignerKPI[]> {
         // функция, сравнивающая 2 числа
         const compareNumbers = (a: number, b: number): number => a - b;
 
@@ -153,5 +156,16 @@ export class Service implements IService {
         statusStatistic["In Progress"] = inProgressIssues.length;
         statusStatistic["New"] = newIssues.length;
         return statusStatistic
+    }
+
+    public async getDesigners(): Promise<IDesignerFromApi[]> {
+        let allDesigners: IDesignerFromApi[] = [];
+        let url: string | null = 'https://sandbox.creos.me/api/v1/designer/';
+        do {
+            const response: IResponseWithCommonData = await trans.getData(url);
+            allDesigners.push(...response.results);
+            url = response.next;
+        } while (url)
+        return allDesigners
     }
 }

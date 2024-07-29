@@ -21,7 +21,7 @@ function Diagrams() {
 
     const [statusIssues, setStatusIssues] = useState<IssueStatusStatistic>({});
     const [loadingStatusIssues, setLoadingStatusIssues] = useState<boolean>(true);
-    const [errorStatusIssues, setErrorLoadingStatusIssues] = useState<string | null>(null);
+    const [errorStatusIssues, setErrorStatusIssues] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchStatusIssues = async () => {
@@ -29,7 +29,7 @@ function Diagrams() {
                 const stats = await service.getIssuesStatus();
                 setStatusIssues(stats);
             } catch (err) {
-                setErrorLoadingStatusIssues('Невозможно подключиться к серверу');
+                setErrorStatusIssues('Невозможно подключиться к серверу');
             } finally {
                 setLoadingStatusIssues(false);
             }

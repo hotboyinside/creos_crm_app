@@ -25,7 +25,7 @@ function HomeContent() {
 
   useEffect(() => {
     async function fetchDesignersKPI() {
-      const designersKPIData = await service.getDesigners();
+      const designersKPIData = await service.getDesignersKPI();
       setdesignersKPI(designersKPIData);
     }
 
