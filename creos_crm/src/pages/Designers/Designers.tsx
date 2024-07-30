@@ -45,8 +45,8 @@ function Designers() {
             <div className="container">
                 <Header />
                 <div className='search-box'>
-                    <input type="search" name="" id="" placeholder="Поиск по имени..."/>
-                    <input type="search" name="" id="" placeholder="Поиск по имени..."/>
+                    <input type="search" name="" id="" placeholder="Поиск по статусу..."/>
+                    <input type="search" name="" id="" placeholder="Поиск по названию проекта..."/>
                 </div>
                 <table>
                     <thead>
